@@ -14,6 +14,8 @@ from grafica.utils import load_pipeline
 
 from grafica.arcball import Arcball
 from grafica.textures import texture_2D_setup
+import grafica.transformations as tr
+
 
 if __name__ == "__main__":
     width = 960
@@ -23,8 +25,8 @@ if __name__ == "__main__":
     # dependiendo de lo que contenga el archivo a cargar,
     # trimesh puede entregar una malla (mesh)
     # o una escena (compuesta de mallas)
-    # con esto forzamos que siempre entregue una escena
-    asset = tm.load(sys.argv[1], force="scene")
+    # con esto forzamos que siempre entregue una escena 
+    asset = tm.load("Tarea2/assets/ShipModels/xWing.obj", force="scene")
 
     # de acuerdo a la documentación de trimesh, esto centra la escena
     # no es igual a trabajar con una malla directamente
@@ -49,7 +51,13 @@ if __name__ == "__main__":
     vertex_lists = {}
 
     # con esto iteramos sobre las mallas
+    # print(asset.geometry.items())
+
+    # visual.materials tiene los Kd y Ld
+    print(asset.__dict__)
+    print("----------------")
     for object_id, object_geometry in asset.geometry.items():
+        print(type(object_geometry))
         mesh = {}
 
         # por si acaso, para que la malla tenga normales consistentes
@@ -88,9 +96,18 @@ if __name__ == "__main__":
             # trimesh ya la cargó, solo debemos copiarla a la GPU
             # si no se usa trimesh, el proceso es el mismo,
             # pero se debe usar Pillow para cargar la imagen
+            print("--------------------------")      
+            print(f"object: {object_id}")      
+            print(f"image: {object_geometry.visual.material.__dict__['image']}")
+            print(f"ambient: {object_geometry.visual.material.__dict__['ambient']}")
+            print(f"diffuse: {object_geometry.visual.material.__dict__['diffuse']}")
+            print(f"specular: {object_geometry.visual.material.__dict__['specular']}")
+            print(f"glossiness: {object_geometry.visual.material.__dict__['_glossiness']}")
+            print(f"kwargs: {object_geometry.visual.material.__dict__['kwargs']}")
+            print("--------------------------")
             mesh["texture"] = texture_2D_setup(object_geometry.visual.material.image)
             # copiamos las coordenadas de textura en el parámetro uv
-            mesh["gpu_data"].uv[:] = object_vlist[6][1]
+            mesh["gpu_data"].uv = object_vlist[6][1][205140:]
         else:
             # usualmente el color viene como c4B/static en vlist[6][0], lo que significa "color de 4 bytes". idealmente eso debe verificarse
             mesh["gpu_data"].color[:] = object_vlist[6][1]
@@ -138,6 +155,7 @@ if __name__ == "__main__":
 
             pipeline["transform"] = arcball.pose.reshape(16, 1, order="F")
             pipeline["light_position"] = np.array([-1.0, 1.0, -1.0])
+            # pipeline["Kd"] = 
 
             if "texture" in object_geometry:
                 GL.glBindTexture(GL.GL_TEXTURE_2D, object_geometry["texture"])

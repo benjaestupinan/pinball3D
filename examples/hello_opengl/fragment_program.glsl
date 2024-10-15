@@ -1,9 +1,14 @@
 #version 330
 
-in vec3 fragColor;
-out vec4 outColor;
+// in vec3 fragColor;
+in vec3 textureDir;
+
+uniform samplerCube cubemap;
+
+out vec3 outColor;
 
 void main()
 {
-    outColor = vec4(fragColor, 1.0f);
+    // vec3 I = normalize(fragPosition + fragNormal);
+    outColor = vec3(texture(cubemap, textureDir));
 }
